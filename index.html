@@ -443,25 +443,6 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .empty-state {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 3rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .empty-state h3 {
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1rem;
-        }
-
-        .empty-state p {
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 1rem;
-        }
     </style>
 </head>
 <body>
@@ -497,78 +478,7 @@
         <div class="container">
             <h2 class="section-title">Latest Posts</h2>
             <div class="posts-grid" id="posts-grid">
-                <?php
-                // Get all .md files from posts directory
-                $postsDir = 'posts/';
-                $posts = [];
-                
-                if (is_dir($postsDir)) {
-                    $files = glob($postsDir . '*.md');
-                    
-                    foreach ($files as $file) {
-                        $content = file_get_contents($file);
-                        $post = parseMarkdownPost($content, basename($file));
-                        if ($post) {
-                            $posts[] = $post;
-                        }
-                    }
-                    
-                    // Sort by date (newest first)
-                    usort($posts, function($a, $b) {
-                        return strtotime($b['date']) - strtotime($a['date']);
-                    });
-                }
-                
-                function parseMarkdownPost($content, $filename) {
-                    // Extract frontmatter
-                    if (!preg_match('/^---\n(.*?)\n---\n(.*)$/s', $content, $matches)) {
-                        return null;
-                    }
-                    
-                    $frontmatter = $matches[1];
-                    $body = trim($matches[2]);
-                    
-                    // Parse frontmatter
-                    $metadata = [];
-                    foreach (explode("\n", $frontmatter) as $line) {
-                        if (strpos($line, ':') !== false) {
-                            list($key, $value) = explode(':', $line, 2);
-                            $key = trim($key);
-                            $value = trim($value, ' "\'');
-                            $metadata[$key] = $value;
-                        }
-                    }
-                    
-                    $metadata['body'] = $body;
-                    $metadata['filename'] = $filename;
-                    $metadata['slug'] = preg_replace('/^\d{4}-\d{2}-\d{2}-/', '', preg_replace('/\.md$/', '', $filename));
-                    
-                    return $metadata;
-                }
-                
-                function formatDate($dateString) {
-                    return date('F j, Y', strtotime($dateString));
-                }
-                
-                if (empty($posts)): ?>
-                    <div class="empty-state">
-                        <h3>No posts found</h3>
-                        <p>Add your markdown files to the /posts/ folder to get started.</p>
-                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Files should be named: YYYY-MM-DD-post-title.md</p>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($posts as $post): ?>
-                        <article class="post-card" onclick="openPost(<?php echo htmlspecialchars(json_encode($post)); ?>)">
-                            <div class="post-image"></div>
-                            <div class="post-content">
-                                <div class="post-meta"><?php echo formatDate($post['date']); ?></div>
-                                <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
-                                <p class="post-excerpt"><?php echo htmlspecialchars($post['excerpt']); ?></p>
-                                <a href="#" class="read-more" onclick="event.stopPropagation(); openPost(<?php echo htmlspecialchars(json_encode($post)); ?>)">Read More →</a>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                <!-- Posts loaded dynamically -->
             </div>
         </div>
     </section>
@@ -613,10 +523,185 @@
     </footer>
 
     <script>
+        // Dynamic Blog Loader - No index needed!
+        class SimpleBlog {
+            constructor() {
+                this.posts = [];
+            }
+
+            async loadPosts() {
+                console.log('🔍 Scanning for posts...');
+                const posts = [];
+                let consecutiveFailures = 0;
+                let postNumber = 1;
+                const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing files
+
+                while (consecutiveFailures < maxConsecutiveFailures && postNumber <= 1000) {
+                    try {
+                        const filename = `post${postNumber}.md`;
+                        const response = await fetch(`posts/${filename}`);
+                        
+                        if (response.ok) {
+                            console.log(`✅ Found: ${filename}`);
+                            const content = await response.text();
+                            const post = this.parseMarkdown(content, filename);
+                            if (post) {
+                                posts.push(post);
+                            }
+                            consecutiveFailures = 0; // Reset counter on success
+                        } else {
+                            console.log(`❌ Missing: ${filename}`);
+                            consecutiveFailures++;
+                        }
+                    } catch (error) {
+                        console.log(`❌ Error loading post${postNumber}.md:`, error.message);
+                        consecutiveFailures++;
+                    }
+                    
+                    postNumber++;
+                }
+
+                console.log(`🎉 Found ${posts.length} posts total`);
+                
+                // Sort by date (newest first) - extract date from frontmatter
+                this.posts = posts.sort((a, b) => {
+                    const dateA = new Date(a.date || '1970-01-01');
+                    const dateB = new Date(b.date || '1970-01-01');
+                    return dateB - dateA;
+                });
+                
+                this.renderPosts();
+            }
+
+            parseMarkdown(content, filename) {
+                const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+                const match = content.match(frontmatterRegex);
+                
+                if (!match) {
+                    console.warn(`⚠️ Invalid frontmatter in ${filename}`);
+                    return null;
+                }
+
+                const [, frontmatter, body] = match;
+                const metadata = this.parseFrontmatter(frontmatter);
+                
+                return {
+                    ...metadata,
+                    body: body.trim(),
+                    filename: filename,
+                    slug: filename.replace(/\.md$/, ''),
+                    number: parseInt(filename.replace(/post(\d+)\.md/, '$1'))
+                };
+            }
+
+            parseFrontmatter(frontmatter) {
+                const lines = frontmatter.split('\n');
+                const metadata = {};
+                
+                for (const line of lines) {
+                    const [key, ...valueParts] = line.split(':');
+                    if (key && valueParts.length > 0) {
+                        let value = valueParts.join(':').trim();
+                        
+                        if ((value.startsWith('"') && value.endsWith('"')) ||
+                            (value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.slice(1, -1);
+                        }
+                        
+                        metadata[key.trim()] = value;
+                    }
+                }
+                
+                return metadata;
+            }
+
+            showEmptyState() {
+                const container = document.getElementById('posts-grid');
+                container.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h3 style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">No posts found</h3>
+                        <p style="color: rgba(255, 255, 255, 0.6); margin-bottom: 1rem;">Add your markdown files to the /posts/ folder.</p>
+                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Name them: post1.md, post2.md, post3.md, etc.</p>
+                    </div>
+                `;
+            }
+
+            renderPosts() {
+                const container = document.getElementById('posts-grid');
+                if (this.posts.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+                container.innerHTML = this.posts.map(post => this.renderPostCard(post)).join('');
+            }
+
+            renderPostCard(post) {
+                // Use featured image if specified, otherwise gradient
+                const imageStyle = post.image 
+                    ? `background-image: url('${post.image}'); background-size: cover; background-position: center;`
+                    : `background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);`;
+
+                return `
+                    <article class="post-card" onclick="blog.openPost('${post.slug}')">
+                        <div class="post-image" style="${imageStyle}"></div>
+                        <div class="post-content">
+                            <div class="post-meta">${this.formatDate(post.date)}</div>
+                            <h3 class="post-title">${post.title}</h3>
+                            <p class="post-excerpt">${post.excerpt}</p>
+                            <a href="#" class="read-more" onclick="event.stopPropagation(); blog.openPost('${post.slug}')">Read More →</a>
+                        </div>
+                    </article>
+                `;
+            }
+
+            formatDate(dateString) {
+                if (!dateString) return 'No date';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+
+            openPost(slug) {
+                const post = this.posts.find(p => p.slug === slug);
+                if (!post) return;
+
+                const modalContent = document.getElementById('modal-content');
+                modalContent.innerHTML = `
+                    <div class="post-meta">${this.formatDate(post.date)}</div>
+                    <h1>${post.title}</h1>
+                    ${this.markdownToHtml(post.body)}
+                `;
+
+                document.getElementById('post-modal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            markdownToHtml(markdown) {
+                return markdown
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+                    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>');
+            }
+        }
+
+        // Initialize blog
+        const blog = new SimpleBlog();
+
         // Loading animation
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('loading').classList.add('hidden');
+                blog.loadPosts();
             }, 1000);
         });
 
@@ -637,48 +722,10 @@
             });
         }
 
-        // Open post modal
-        function openPost(post) {
-            const modalContent = document.getElementById('modal-content');
-            modalContent.innerHTML = `
-                <div class="post-meta">${formatDate(post.date)}</div>
-                <h1>${post.title}</h1>
-                ${markdownToHtml(post.body)}
-            `;
-
-            document.getElementById('post-modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
         // Close post modal
         function closePost() {
             document.getElementById('post-modal').classList.remove('active');
             document.body.style.overflow = 'auto';
-        }
-
-        // Format date
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-
-        // Convert markdown to HTML
-        function markdownToHtml(markdown) {
-            return markdown
-                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-                .replace(/\n\n/g, '</p><p>')
-                .replace(/^/, '<p>')
-                .replace(/$/, '</p>');
         }
 
         // Close modal on outside click

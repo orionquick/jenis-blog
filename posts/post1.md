@@ -1,32 +1,75 @@
 ---
-title: "Welcome to My Blog"
-date: "2025-01-20"
-excerpt: "This is my first blog post! I'm excited to share my thoughts and ideas with you."
+title: "Hello World!"
+date: "2025-07-20"
+excerpt: "This is my first blog post!"
 ---
 
-# Welcome to My Blog!
+# Markdown syntax guide
 
-I'm so excited to share this space with you. This is where I'll be posting my thoughts, ideas, and stories that inspire me.
+## Headers
 
-## What You Can Expect
+# This is a Heading h1
+## This is a Heading h2
+###### This is a Heading h6
 
-- **Personal insights** on life and creativity
-- **Tips and tricks** I've learned along the way  
-- **Stories** that have shaped my perspective
-- **Resources** I find valuable
+## Emphasis
 
-## Adding Images
+*This text will be italic*  
+_This will also be italic_
 
-You can add images from your media folder like this:
+**This text will be bold**  
+__This will also be bold__
 
-![Sample Image](/media/sample.jpg)
+_You **can** combine them_
 
-## Why I Started Blogging
+## Lists
 
-Writing has always been a passion of mine. There's something magical about putting thoughts into words and connecting with others through shared experiences.
+### Unordered
 
-Thank you for joining me on this journey. I can't wait to see where it takes us!
+* Item 1
+* Item 2
+* Item 2a
+* Item 2b
+    * Item 3a
+    * Item 3b
 
----
+### Ordered
 
-*What topics would you like me to write about? Let me know!*
+1. Item 1
+2. Item 2
+3. Item 3
+    1. Item 3a
+    2. Item 3b
+
+## Images
+
+![This is an alt text.](/media/sample.jpg "This is a sample image.")
+
+## Links
+
+You may be using [Markdown Live Preview](https://markdownlivepreview.com/).
+
+## Blockquotes
+
+> Markdown is a lightweight markup language with plain-text-formatting syntax, created in 2004 by John Gruber with Aaron Swartz.
+>
+>> Markdown is often used to format readme files, for writing messages in online discussion forums, and to create rich text using a plain text editor.
+
+## Tables
+
+| Left columns  | Right columns |
+| ------------- |:-------------:|
+| left foo      | right foo     |
+| left bar      | right bar     |
+| left baz      | right baz     |
+
+## Blocks of code
+
+```
+let message = 'Hello world';
+alert(message);
+```
+
+## Inline code
+
+This web site is made with `lots-of-love.js`.

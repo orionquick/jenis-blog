@@ -536,21 +536,24 @@
                 let postNumber = 1;
                 const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing files
 
-                while (consecutiveFailures < maxConsecutiveFailures && postNumber <= 1000) {
+                while (consecutiveFailures < maxConsecutiveFailures && postNumber <= 100) {
                     try {
                         const filename = `post${postNumber}.md`;
+                        console.log(`🔍 Checking: ${filename}`);
                         const response = await fetch(`posts/${filename}`);
                         
                         if (response.ok) {
-                            console.log(`✅ Found: ${filename}`);
+                            console.log(`✅ Found: ${filename} (Status: ${response.status})`);
                             const content = await response.text();
+                            console.log(`📄 Content length: ${content.length} chars`);
                             const post = this.parseMarkdown(content, filename);
                             if (post) {
                                 posts.push(post);
+                                console.log(`✅ Parsed: ${post.title}`);
                             }
                             consecutiveFailures = 0; // Reset counter on success
                         } else {
-                            console.log(`❌ Missing: ${filename}`);
+                            console.log(`❌ Missing: ${filename} (Status: ${response.status})`);
                             consecutiveFailures++;
                         }
                     } catch (error) {
@@ -574,15 +577,25 @@
             }
 
             parseMarkdown(content, filename) {
-                const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+                console.log(`🔍 Parsing: ${filename}`);
+                
+                // Normalize line endings first
+                content = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                
+                // More flexible frontmatter regex - handles various formats
+                const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
                 const match = content.match(frontmatterRegex);
                 
                 if (!match) {
                     console.warn(`⚠️ Invalid frontmatter in ${filename}`);
+                    console.log('📄 First 200 chars of file:');
+                    console.log(content.substring(0, 200));
+                    console.log('📄 Looking for pattern: ---\\nfrontmatter\\n---\\nbody');
                     return null;
                 }
 
                 const [, frontmatter, body] = match;
+                console.log(`📋 Frontmatter found:`, frontmatter.trim());
                 const metadata = this.parseFrontmatter(frontmatter);
                 
                 return {
@@ -595,21 +608,26 @@
             }
 
             parseFrontmatter(frontmatter) {
-                const lines = frontmatter.split('\n');
+                const lines = frontmatter.trim().split('\n');
                 const metadata = {};
                 
                 for (const line of lines) {
-                    const [key, ...valueParts] = line.split(':');
-                    if (key && valueParts.length > 0) {
-                        let value = valueParts.join(':').trim();
-                        
-                        if ((value.startsWith('"') && value.endsWith('"')) ||
-                            (value.startsWith("'") && value.endsWith("'"))) {
-                            value = value.slice(1, -1);
-                        }
-                        
-                        metadata[key.trim()] = value;
+                    if (line.trim() === '') continue; // Skip empty lines
+                    
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex === -1) continue; // Skip lines without colons
+                    
+                    const key = line.substring(0, colonIndex).trim();
+                    let value = line.substring(colonIndex + 1).trim();
+                    
+                    // Remove quotes if present
+                    if ((value.startsWith('"') && value.endsWith('"')) ||
+                        (value.startsWith("'") && value.endsWith("'"))) {
+                        value = value.slice(1, -1);
                     }
+                    
+                    metadata[key] = value;
+                    console.log(`📝 ${key}: ${value}`);
                 }
                 
                 return metadata;

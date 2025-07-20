@@ -25,7 +25,7 @@
             padding: 0 20px;
         }
 
-        /* Glassmorphism Navigation */
+        /* Navigation */
         nav {
             position: fixed;
             top: 0;
@@ -108,17 +108,6 @@
             overflow: hidden;
         }
 
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="%23ff6b6b" stop-opacity="0.1"/><stop offset="100%" stop-color="%23ff6b6b" stop-opacity="0"/></radialGradient></defs><circle cx="200" cy="300" r="100" fill="url(%23a)"><animateTransform attributeName="transform" type="translate" values="0,0;50,30;0,0" dur="10s" repeatCount="indefinite"/></circle><circle cx="800" cy="200" r="150" fill="url(%23a)"><animateTransform attributeName="transform" type="translate" values="0,0;-30,50;0,0" dur="15s" repeatCount="indefinite"/></circle><circle cx="600" cy="700" r="120" fill="url(%23a)"><animateTransform attributeName="transform" type="translate" values="0,0;40,-20;0,0" dur="12s" repeatCount="indefinite"/></circle></svg>');
-            opacity: 0.6;
-        }
-
         .hero-content {
             z-index: 2;
             animation: fadeInUp 1s ease-out;
@@ -173,8 +162,8 @@
             box-shadow: 0 15px 40px rgba(255, 107, 107, 0.4);
         }
 
-        /* Featured Posts Section */
-        .featured-posts {
+        /* Posts Section */
+        .posts-section {
             padding: 5rem 0;
             background: rgba(255, 255, 255, 0.02);
         }
@@ -219,21 +208,6 @@
             overflow: hidden;
         }
 
-        .post-image::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .post-card:hover .post-image::after {
-            background: rgba(0, 0, 0, 0.1);
-        }
-
         .post-content {
             padding: 2rem;
         }
@@ -265,6 +239,78 @@
 
         .read-more:hover {
             color: #4ecdc4;
+        }
+
+        /* Post Modal */
+        .post-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .post-modal.active {
+            display: flex;
+        }
+
+        .post-content-modal {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            padding: 3rem;
+            margin: 2rem;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-content-modal h1 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+        }
+
+        .post-content-modal h2 {
+            color: #4ecdc4;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .post-content-modal p {
+            margin-bottom: 1rem;
+            line-height: 1.7;
+        }
+
+        .post-content-modal img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 1rem 0;
         }
 
         /* About Section */
@@ -357,18 +403,11 @@
                 flex-direction: column;
                 text-align: center;
             }
-        }
 
-        /* Scroll animations */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.6s ease;
-        }
-
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
+            .post-content-modal {
+                padding: 2rem;
+                margin: 1rem;
+            }
         }
 
         /* Loading animation */
@@ -420,7 +459,7 @@
                 <li><a href="#home">Home</a></li>
                 <li><a href="#posts">Posts</a></li>
                 <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="mailto:hello@jeni.blog">Contact</a></li>
             </ul>
         </div>
     </nav>
@@ -434,46 +473,18 @@
         </div>
     </section>
 
-    <!-- Featured Posts -->
-    <section class="featured-posts fade-in" id="posts">
+    <!-- Posts Section -->
+    <section class="posts-section" id="posts">
         <div class="container">
-            <h2 class="section-title">Featured Posts</h2>
-            <div class="posts-grid">
-                <article class="post-card">
-                    <div class="post-image"></div>
-                    <div class="post-content">
-                        <div class="post-meta">January 15, 2025</div>
-                        <h3 class="post-title">The Art of Mindful Living</h3>
-                        <p class="post-excerpt">Exploring how mindfulness can transform our daily experiences and bring more joy to ordinary moments...</p>
-                        <a href="#" class="read-more">Read More →</a>
-                    </div>
-                </article>
-                
-                <article class="post-card">
-                    <div class="post-image"></div>
-                    <div class="post-content">
-                        <div class="post-meta">January 10, 2025</div>
-                        <h3 class="post-title">Creative Inspiration in Unexpected Places</h3>
-                        <p class="post-excerpt">Sometimes the most profound ideas come from the most unexpected sources. Here's where I find my creative spark...</p>
-                        <a href="#" class="read-more">Read More →</a>
-                    </div>
-                </article>
-                
-                <article class="post-card">
-                    <div class="post-image"></div>
-                    <div class="post-content">
-                        <div class="post-meta">January 5, 2025</div>
-                        <h3 class="post-title">Building Meaningful Connections</h3>
-                        <p class="post-excerpt">In our digital age, forming genuine relationships requires intention and authentic vulnerability...</p>
-                        <a href="#" class="read-more">Read More →</a>
-                    </div>
-                </article>
+            <h2 class="section-title">Latest Posts</h2>
+            <div class="posts-grid" id="posts-grid">
+                <!-- Posts loaded dynamically -->
             </div>
         </div>
     </section>
 
     <!-- About Section -->
-    <section class="about fade-in" id="about">
+    <section class="about" id="about">
         <div class="container">
             <div class="about-content">
                 <h2>About Jeni</h2>
@@ -482,6 +493,16 @@
             </div>
         </div>
     </section>
+
+    <!-- Post Modal -->
+    <div class="post-modal" id="post-modal">
+        <div class="post-content-modal">
+            <button class="close-modal" onclick="closePost()">×</button>
+            <div id="modal-content">
+                <!-- Post content loaded here -->
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer>
@@ -495,17 +516,186 @@
                     <a href="#" title="Twitter">𝕏</a>
                     <a href="#" title="Instagram">📷</a>
                     <a href="#" title="LinkedIn">💼</a>
-                    <a href="#" title="Email">✉️</a>
+                    <a href="mailto:hello@jeni.blog" title="Email">✉️</a>
                 </div>
             </div>
         </div>
     </footer>
 
     <script>
+        // Simple Blog Loader
+        class SimpleBlog {
+            constructor() {
+                this.posts = [];
+            }
+
+            async loadPosts() {
+                try {
+                    // Try to load posts from posts directory
+                    const postFiles = [
+                        '2025-01-20-welcome-to-my-blog.md',
+                        '2025-01-15-the-art-of-mindful-living.md',
+                        '2025-01-10-creative-inspiration.md'
+                    ];
+
+                    const posts = [];
+                    for (const file of postFiles) {
+                        try {
+                            const response = await fetch(`posts/${file}`);
+                            if (response.ok) {
+                                const content = await response.text();
+                                const post = this.parseMarkdown(content, file);
+                                if (post) posts.push(post);
+                            }
+                        } catch (e) {
+                            // Ignore missing files
+                        }
+                    }
+
+                    // If no posts found, show sample posts
+                    if (posts.length === 0) {
+                        posts.push(...this.getSamplePosts());
+                    }
+
+                    this.posts = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
+                    this.renderPosts();
+                } catch (error) {
+                    console.log('Loading sample posts...');
+                    this.posts = this.getSamplePosts();
+                    this.renderPosts();
+                }
+            }
+
+            parseMarkdown(content, filename) {
+                const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+                const match = content.match(frontmatterRegex);
+                
+                if (!match) return null;
+
+                const [, frontmatter, body] = match;
+                const metadata = this.parseFrontmatter(frontmatter);
+                
+                return {
+                    ...metadata,
+                    body: body.trim(),
+                    filename: filename,
+                    slug: filename.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '')
+                };
+            }
+
+            parseFrontmatter(frontmatter) {
+                const lines = frontmatter.split('\n');
+                const metadata = {};
+                
+                for (const line of lines) {
+                    const [key, ...valueParts] = line.split(':');
+                    if (key && valueParts.length > 0) {
+                        let value = valueParts.join(':').trim();
+                        
+                        if ((value.startsWith('"') && value.endsWith('"')) ||
+                            (value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.slice(1, -1);
+                        }
+                        
+                        metadata[key.trim()] = value;
+                    }
+                }
+                
+                return metadata;
+            }
+
+            getSamplePosts() {
+                return [
+                    {
+                        title: "The Art of Mindful Living",
+                        date: "2025-01-15",
+                        excerpt: "Exploring how mindfulness can transform our daily experiences and bring more joy to ordinary moments...",
+                        body: "# The Art of Mindful Living\n\nIn our fast-paced world, mindfulness offers a way to slow down and truly experience life...",
+                        slug: "the-art-of-mindful-living"
+                    },
+                    {
+                        title: "Creative Inspiration in Unexpected Places",
+                        date: "2025-01-10",
+                        excerpt: "Sometimes the most profound ideas come from the most unexpected sources. Here's where I find my creative spark...",
+                        body: "# Creative Inspiration in Unexpected Places\n\nCreativity doesn't always strike when we're sitting at our desks...",
+                        slug: "creative-inspiration"
+                    },
+                    {
+                        title: "Building Meaningful Connections",
+                        date: "2025-01-05",
+                        excerpt: "In our digital age, forming genuine relationships requires intention and authentic vulnerability...",
+                        body: "# Building Meaningful Connections\n\nConnecting with others has never been easier, yet meaningful relationships seem harder to find...",
+                        slug: "building-meaningful-connections"
+                    }
+                ];
+            }
+
+            renderPosts() {
+                const container = document.getElementById('posts-grid');
+                container.innerHTML = this.posts.map(post => this.renderPostCard(post)).join('');
+            }
+
+            renderPostCard(post) {
+                return `
+                    <article class="post-card" onclick="blog.openPost('${post.slug}')">
+                        <div class="post-image"></div>
+                        <div class="post-content">
+                            <div class="post-meta">${this.formatDate(post.date)}</div>
+                            <h3 class="post-title">${post.title}</h3>
+                            <p class="post-excerpt">${post.excerpt}</p>
+                            <a href="#" class="read-more" onclick="event.stopPropagation(); blog.openPost('${post.slug}')">Read More →</a>
+                        </div>
+                    </article>
+                `;
+            }
+
+            formatDate(dateString) {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            }
+
+            openPost(slug) {
+                const post = this.posts.find(p => p.slug === slug);
+                if (!post) return;
+
+                const modalContent = document.getElementById('modal-content');
+                modalContent.innerHTML = `
+                    <div class="post-meta">${this.formatDate(post.date)}</div>
+                    <h1>${post.title}</h1>
+                    ${this.markdownToHtml(post.body)}
+                `;
+
+                document.getElementById('post-modal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            markdownToHtml(markdown) {
+                return markdown
+                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>');
+            }
+        }
+
+        // Initialize blog
+        const blog = new SimpleBlog();
+
         // Loading animation
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('loading').classList.add('hidden');
+                blog.loadPosts();
             }, 1000);
         });
 
@@ -526,59 +716,26 @@
             });
         }
 
-        // Scroll animations
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+        // Close post modal
+        function closePost() {
+            document.getElementById('post-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, observerOptions);
-
-        document.querySelectorAll('.fade-in').forEach(el => {
-            observer.observe(el);
+        // Close modal on outside click
+        document.getElementById('post-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'post-modal') {
+                closePost();
+            }
         });
 
-        // Add click animations to post cards
-        document.querySelectorAll('.post-card').forEach(card => {
-            card.addEventListener('click', () => {
-                card.style.transform = 'scale(0.98)';
-                setTimeout(() => {
-                    card.style.transform = '';
-                }, 150);
-            });
-        });
-
-        // Dynamic gradient background
-        let mouseX = 0, mouseY = 0;
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            
-            const moveX = (mouseX / window.innerWidth) * 50;
-            const moveY = (mouseY / window.innerHeight) * 50;
-            
-            document.body.style.background = `
-                radial-gradient(circle at ${moveX}% ${moveY}%, 
-                rgba(255, 107, 107, 0.1) 0%, 
-                transparent 50%),
-                linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%)
-            `;
-        });
-
-        // Add navigation click handlers
+        // Navigation click handlers
         document.querySelectorAll('.nav-links a').forEach(link => {
             link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetId = link.getAttribute('href').substring(1);
-                if (targetId === 'contact') {
-                    window.location.href = 'mailto:hello@jeni.blog';
-                } else {
+                const href = link.getAttribute('href');
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const targetId = href.substring(1);
                     scrollToSection(targetId);
                 }
             });

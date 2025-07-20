@@ -531,33 +531,82 @@
 
             async loadPosts() {
                 console.log('🔍 Scanning for posts...');
+                console.log('📍 Current URL:', window.location.href);
+                console.log('📍 Base URL:', window.location.origin);
+                
                 const posts = [];
                 let consecutiveFailures = 0;
                 let postNumber = 1;
-                const maxConsecutiveFailures = 5; // Stop after 5 consecutive missing files
+                const maxConsecutiveFailures = 5;
 
                 while (consecutiveFailures < maxConsecutiveFailures && postNumber <= 100) {
                     try {
-                        const filename = `post${postNumber}.md`;
-                        console.log(`🔍 Checking: ${filename}`);
-                        const response = await fetch(`posts/${filename}`);
+                        const filename = `post${postNumber}.txt`;  // Changed to .txt
+                        const url = `posts/${filename}`;
+                        console.log(`🔍 Checking: ${filename} at URL: ${window.location.origin}/${url}`);
+                        
+                        const response = await fetch(url);
+                        
+                        console.log(`📡 Response for ${filename}:`, {
+                            status: response.status,
+                            statusText: response.statusText,
+                            url: response.url,
+                            headers: Object.fromEntries(response.headers.entries())
+                        });
                         
                         if (response.ok) {
                             console.log(`✅ Found: ${filename} (Status: ${response.status})`);
                             const content = await response.text();
                             console.log(`📄 Content length: ${content.length} chars`);
+                            console.log(`📄 First 100 chars:`, content.substring(0, 100));
+                            
                             const post = this.parseMarkdown(content, filename);
                             if (post) {
                                 posts.push(post);
                                 console.log(`✅ Parsed: ${post.title}`);
                             }
-                            consecutiveFailures = 0; // Reset counter on success
+                            consecutiveFailures = 0;
                         } else {
-                            console.log(`❌ Missing: ${filename} (Status: ${response.status})`);
-                            consecutiveFailures++;
+                            console.log(`❌ Missing: ${filename} (Status: ${response.status} - ${response.statusText})`);
+                            
+                            // Try alternative paths
+                            console.log(`🔄 Trying alternative paths for ${filename}...`);
+                            const altPaths = [
+                                `./${url}`,
+                                `/${url}`,
+                                `${window.location.pathname}${url}`,
+                                `./posts/${filename}`
+                            ];
+                            
+                            let found = false;
+                            for (const altPath of altPaths) {
+                                try {
+                                    console.log(`🔄 Trying: ${altPath}`);
+                                    const altResponse = await fetch(altPath);
+                                    if (altResponse.ok) {
+                                        console.log(`✅ Found at alternative path: ${altPath}`);
+                                        const content = await altResponse.text();
+                                        const post = this.parseMarkdown(content, filename);
+                                        if (post) {
+                                            posts.push(post);
+                                            console.log(`✅ Parsed: ${post.title}`);
+                                        }
+                                        found = true;
+                                        consecutiveFailures = 0;
+                                        break;
+                                    }
+                                } catch (e) {
+                                    console.log(`❌ Alternative path ${altPath} failed:`, e.message);
+                                }
+                            }
+                            
+                            if (!found) {
+                                consecutiveFailures++;
+                            }
                         }
                     } catch (error) {
-                        console.log(`❌ Error loading post${postNumber}.md:`, error.message);
+                        console.log(`❌ Error loading post${postNumber}.txt:`, error.message);
+                        console.log(`❌ Full error:`, error);
                         consecutiveFailures++;
                     }
                     
@@ -566,7 +615,14 @@
 
                 console.log(`🎉 Found ${posts.length} posts total`);
                 
-                // Sort by date (newest first) - extract date from frontmatter
+                if (posts.length === 0) {
+                    console.log('🔧 Debugging info:');
+                    console.log('- Make sure your posts are in the /posts/ directory');
+                    console.log('- Check that GitHub Pages is serving your repository');
+                    console.log('- Try accessing a post directly: ' + window.location.origin + '/posts/post1.txt');
+                }
+                
+                // Sort by date (newest first)
                 this.posts = posts.sort((a, b) => {
                     const dateA = new Date(a.date || '1970-01-01');
                     const dateB = new Date(b.date || '1970-01-01');
@@ -602,8 +658,8 @@
                     ...metadata,
                     body: body.trim(),
                     filename: filename,
-                    slug: filename.replace(/\.md$/, ''),
-                    number: parseInt(filename.replace(/post(\d+)\.md/, '$1'))
+                    slug: filename.replace(/\.txt$/, ''),  // Changed to .txt
+                    number: parseInt(filename.replace(/post(\d+)\.txt/, '$1'))  // Changed to .txt
                 };
             }
 
@@ -639,7 +695,7 @@
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
                         <h3 style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">No posts found</h3>
                         <p style="color: rgba(255, 255, 255, 0.6); margin-bottom: 1rem;">Add your markdown files to the /posts/ folder.</p>
-                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Name them: post1.md, post2.md, post3.md, etc.</p>
+                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Name them: post1.txt, post2.txt, post3.txt, etc.</p>
                     </div>
                 `;
             }

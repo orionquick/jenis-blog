@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jeni's Blog - Thoughts, Stories & Ideas</title>
+    <!-- Marked.js for complete markdown parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -311,6 +313,119 @@
             max-width: 100%;
             border-radius: 10px;
             margin: 1rem 0;
+        }
+
+        /* Enhanced Markdown Styling */
+        .post-content-modal h3,
+        .post-content-modal h4,
+        .post-content-modal h5,
+        .post-content-modal h6 {
+            color: #4ecdc4;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .post-content-modal blockquote {
+            border-left: 4px solid #ff6b6b;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+        }
+
+        .post-content-modal blockquote p {
+            margin: 0.5rem 0;
+        }
+
+        .post-content-modal code {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #4ecdc4;
+            font-size: 0.9em;
+        }
+
+        .post-content-modal pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .post-content-modal pre code {
+            background: none;
+            padding: 0;
+            color: #ffffff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .post-content-modal table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .post-content-modal th,
+        .post-content-modal td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .post-content-modal th {
+            background: rgba(255, 107, 107, 0.2);
+            font-weight: 600;
+            color: #ff6b6b;
+        }
+
+        .post-content-modal ul,
+        .post-content-modal ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+
+        .post-content-modal li {
+            margin: 0.5rem 0;
+            line-height: 1.6;
+        }
+
+        .post-content-modal ul ul,
+        .post-content-modal ol ol,
+        .post-content-modal ul ol,
+        .post-content-modal ol ul {
+            margin: 0.25rem 0;
+        }
+
+        .post-content-modal hr {
+            border: none;
+            height: 2px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            margin: 2rem 0;
+            border-radius: 2px;
+        }
+
+        .post-content-modal a {
+            color: #4ecdc4;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .post-content-modal a:hover {
+            color: #ff6b6b;
+            border-bottom-color: #ff6b6b;
+        }
+
+        .post-content-modal del {
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: line-through;
         }
 
         /* About Section */
@@ -754,17 +869,25 @@
             }
 
             markdownToHtml(markdown) {
-                return markdown
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
-                    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-                    .replace(/\n\n/g, '</p><p>')
-                    .replace(/^/, '<p>')
-                    .replace(/$/, '</p>');
+                // Configure marked for better output
+                marked.setOptions({
+                    breaks: true,        // Convert \n to <br>
+                    gfm: true,          // GitHub Flavored Markdown
+                    headerIds: true,    // Add IDs to headers
+                    mangle: false,      // Don't mangle email addresses
+                    sanitize: false,    // Allow HTML (be careful with user content)
+                    smartLists: true,   // Use smarter list behavior
+                    smartypants: true,  // Use "smart" typographic punctuation
+                    xhtml: false        // Don't use XHTML-compliant tags
+                });
+
+                try {
+                    return marked.parse(markdown);
+                } catch (error) {
+                    console.error('Markdown parsing error:', error);
+                    // Fallback to basic HTML if marked fails
+                    return `<p>${markdown.replace(/\n/g, '<br>')}</p>`;
+                }
             }
         }
 

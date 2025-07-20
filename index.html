@@ -541,7 +541,7 @@
 
                 while (consecutiveFailures < maxConsecutiveFailures && postNumber <= 100) {
                     try {
-                        const filename = `post${postNumber}.txt`;  // Changed to .txt
+                        const filename = `post${postNumber}.md`;  // Back to .md
                         const url = `posts/${filename}`;
                         console.log(`🔍 Checking: ${filename} at URL: ${window.location.origin}/${url}`);
                         
@@ -605,7 +605,7 @@
                             }
                         }
                     } catch (error) {
-                        console.log(`❌ Error loading post${postNumber}.txt:`, error.message);
+                        console.log(`❌ Error loading post${postNumber}.md:`, error.message);
                         console.log(`❌ Full error:`, error);
                         consecutiveFailures++;
                     }
@@ -619,7 +619,7 @@
                     console.log('🔧 Debugging info:');
                     console.log('- Make sure your posts are in the /posts/ directory');
                     console.log('- Check that GitHub Pages is serving your repository');
-                    console.log('- Try accessing a post directly: ' + window.location.origin + '/posts/post1.txt');
+                    console.log('- Try accessing a post directly: ' + window.location.origin + '/posts/post1.md');
                 }
                 
                 // Sort by date (newest first)
@@ -658,8 +658,8 @@
                     ...metadata,
                     body: body.trim(),
                     filename: filename,
-                    slug: filename.replace(/\.txt$/, ''),  // Changed to .txt
-                    number: parseInt(filename.replace(/post(\d+)\.txt/, '$1'))  // Changed to .txt
+                    slug: filename.replace(/\.md$/, ''),  // Back to .md
+                    number: parseInt(filename.replace(/post(\d+)\.md/, '$1'))  // Back to .md
                 };
             }
 
@@ -695,7 +695,7 @@
                     <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background: rgba(255, 255, 255, 0.05); border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);">
                         <h3 style="color: rgba(255, 255, 255, 0.8); margin-bottom: 1rem;">No posts found</h3>
                         <p style="color: rgba(255, 255, 255, 0.6); margin-bottom: 1rem;">Add your markdown files to the /posts/ folder.</p>
-                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Name them: post1.txt, post2.txt, post3.txt, etc.</p>
+                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Name them: post1.md, post2.md, post3.md, etc.</p>
                     </div>
                 `;
             }

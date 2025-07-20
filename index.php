@@ -443,6 +443,25 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .empty-state h3 {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -478,7 +497,78 @@
         <div class="container">
             <h2 class="section-title">Latest Posts</h2>
             <div class="posts-grid" id="posts-grid">
-                <!-- Posts loaded dynamically -->
+                <?php
+                // Get all .md files from posts directory
+                $postsDir = 'posts/';
+                $posts = [];
+                
+                if (is_dir($postsDir)) {
+                    $files = glob($postsDir . '*.md');
+                    
+                    foreach ($files as $file) {
+                        $content = file_get_contents($file);
+                        $post = parseMarkdownPost($content, basename($file));
+                        if ($post) {
+                            $posts[] = $post;
+                        }
+                    }
+                    
+                    // Sort by date (newest first)
+                    usort($posts, function($a, $b) {
+                        return strtotime($b['date']) - strtotime($a['date']);
+                    });
+                }
+                
+                function parseMarkdownPost($content, $filename) {
+                    // Extract frontmatter
+                    if (!preg_match('/^---\n(.*?)\n---\n(.*)$/s', $content, $matches)) {
+                        return null;
+                    }
+                    
+                    $frontmatter = $matches[1];
+                    $body = trim($matches[2]);
+                    
+                    // Parse frontmatter
+                    $metadata = [];
+                    foreach (explode("\n", $frontmatter) as $line) {
+                        if (strpos($line, ':') !== false) {
+                            list($key, $value) = explode(':', $line, 2);
+                            $key = trim($key);
+                            $value = trim($value, ' "\'');
+                            $metadata[$key] = $value;
+                        }
+                    }
+                    
+                    $metadata['body'] = $body;
+                    $metadata['filename'] = $filename;
+                    $metadata['slug'] = preg_replace('/^\d{4}-\d{2}-\d{2}-/', '', preg_replace('/\.md$/', '', $filename));
+                    
+                    return $metadata;
+                }
+                
+                function formatDate($dateString) {
+                    return date('F j, Y', strtotime($dateString));
+                }
+                
+                if (empty($posts)): ?>
+                    <div class="empty-state">
+                        <h3>No posts found</h3>
+                        <p>Add your markdown files to the /posts/ folder to get started.</p>
+                        <p style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem;">Files should be named: YYYY-MM-DD-post-title.md</p>
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($posts as $post): ?>
+                        <article class="post-card" onclick="openPost(<?php echo htmlspecialchars(json_encode($post)); ?>)">
+                            <div class="post-image"></div>
+                            <div class="post-content">
+                                <div class="post-meta"><?php echo formatDate($post['date']); ?></div>
+                                <h3 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h3>
+                                <p class="post-excerpt"><?php echo htmlspecialchars($post['excerpt']); ?></p>
+                                <a href="#" class="read-more" onclick="event.stopPropagation(); openPost(<?php echo htmlspecialchars(json_encode($post)); ?>)">Read More →</a>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -523,179 +613,10 @@
     </footer>
 
     <script>
-        // Simple Blog Loader
-        class SimpleBlog {
-            constructor() {
-                this.posts = [];
-            }
-
-            async loadPosts() {
-                try {
-                    // Try to load posts from posts directory
-                    const postFiles = [
-                        '2025-01-20-welcome-to-my-blog.md',
-                        '2025-01-15-the-art-of-mindful-living.md',
-                        '2025-01-10-creative-inspiration.md'
-                    ];
-
-                    const posts = [];
-                    for (const file of postFiles) {
-                        try {
-                            const response = await fetch(`posts/${file}`);
-                            if (response.ok) {
-                                const content = await response.text();
-                                const post = this.parseMarkdown(content, file);
-                                if (post) posts.push(post);
-                            }
-                        } catch (e) {
-                            // Ignore missing files
-                        }
-                    }
-
-                    // If no posts found, show sample posts
-                    if (posts.length === 0) {
-                        posts.push(...this.getSamplePosts());
-                    }
-
-                    this.posts = posts.sort((a, b) => new Date(b.date) - new Date(a.date));
-                    this.renderPosts();
-                } catch (error) {
-                    console.log('Loading sample posts...');
-                    this.posts = this.getSamplePosts();
-                    this.renderPosts();
-                }
-            }
-
-            parseMarkdown(content, filename) {
-                const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
-                const match = content.match(frontmatterRegex);
-                
-                if (!match) return null;
-
-                const [, frontmatter, body] = match;
-                const metadata = this.parseFrontmatter(frontmatter);
-                
-                return {
-                    ...metadata,
-                    body: body.trim(),
-                    filename: filename,
-                    slug: filename.replace(/^\d{4}-\d{2}-\d{2}-/, '').replace(/\.md$/, '')
-                };
-            }
-
-            parseFrontmatter(frontmatter) {
-                const lines = frontmatter.split('\n');
-                const metadata = {};
-                
-                for (const line of lines) {
-                    const [key, ...valueParts] = line.split(':');
-                    if (key && valueParts.length > 0) {
-                        let value = valueParts.join(':').trim();
-                        
-                        if ((value.startsWith('"') && value.endsWith('"')) ||
-                            (value.startsWith("'") && value.endsWith("'"))) {
-                            value = value.slice(1, -1);
-                        }
-                        
-                        metadata[key.trim()] = value;
-                    }
-                }
-                
-                return metadata;
-            }
-
-            getSamplePosts() {
-                return [
-                    {
-                        title: "The Art of Mindful Living",
-                        date: "2025-01-15",
-                        excerpt: "Exploring how mindfulness can transform our daily experiences and bring more joy to ordinary moments...",
-                        body: "# The Art of Mindful Living\n\nIn our fast-paced world, mindfulness offers a way to slow down and truly experience life...",
-                        slug: "the-art-of-mindful-living"
-                    },
-                    {
-                        title: "Creative Inspiration in Unexpected Places",
-                        date: "2025-01-10",
-                        excerpt: "Sometimes the most profound ideas come from the most unexpected sources. Here's where I find my creative spark...",
-                        body: "# Creative Inspiration in Unexpected Places\n\nCreativity doesn't always strike when we're sitting at our desks...",
-                        slug: "creative-inspiration"
-                    },
-                    {
-                        title: "Building Meaningful Connections",
-                        date: "2025-01-05",
-                        excerpt: "In our digital age, forming genuine relationships requires intention and authentic vulnerability...",
-                        body: "# Building Meaningful Connections\n\nConnecting with others has never been easier, yet meaningful relationships seem harder to find...",
-                        slug: "building-meaningful-connections"
-                    }
-                ];
-            }
-
-            renderPosts() {
-                const container = document.getElementById('posts-grid');
-                container.innerHTML = this.posts.map(post => this.renderPostCard(post)).join('');
-            }
-
-            renderPostCard(post) {
-                return `
-                    <article class="post-card" onclick="blog.openPost('${post.slug}')">
-                        <div class="post-image"></div>
-                        <div class="post-content">
-                            <div class="post-meta">${this.formatDate(post.date)}</div>
-                            <h3 class="post-title">${post.title}</h3>
-                            <p class="post-excerpt">${post.excerpt}</p>
-                            <a href="#" class="read-more" onclick="event.stopPropagation(); blog.openPost('${post.slug}')">Read More →</a>
-                        </div>
-                    </article>
-                `;
-            }
-
-            formatDate(dateString) {
-                const date = new Date(dateString);
-                return date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-            }
-
-            openPost(slug) {
-                const post = this.posts.find(p => p.slug === slug);
-                if (!post) return;
-
-                const modalContent = document.getElementById('modal-content');
-                modalContent.innerHTML = `
-                    <div class="post-meta">${this.formatDate(post.date)}</div>
-                    <h1>${post.title}</h1>
-                    ${this.markdownToHtml(post.body)}
-                `;
-
-                document.getElementById('post-modal').classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-
-            markdownToHtml(markdown) {
-                return markdown
-                    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-                    .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-                    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
-                    .replace(/\n\n/g, '</p><p>')
-                    .replace(/^/, '<p>')
-                    .replace(/$/, '</p>');
-            }
-        }
-
-        // Initialize blog
-        const blog = new SimpleBlog();
-
         // Loading animation
         window.addEventListener('load', () => {
             setTimeout(() => {
                 document.getElementById('loading').classList.add('hidden');
-                blog.loadPosts();
             }, 1000);
         });
 
@@ -716,10 +637,48 @@
             });
         }
 
+        // Open post modal
+        function openPost(post) {
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="post-meta">${formatDate(post.date)}</div>
+                <h1>${post.title}</h1>
+                ${markdownToHtml(post.body)}
+            `;
+
+            document.getElementById('post-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
         // Close post modal
         function closePost() {
             document.getElementById('post-modal').classList.remove('active');
             document.body.style.overflow = 'auto';
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        // Convert markdown to HTML
+        function markdownToHtml(markdown) {
+            return markdown
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^/, '<p>')
+                .replace(/$/, '</p>');
         }
 
         // Close modal on outside click
